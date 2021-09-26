@@ -1,0 +1,1 @@
+# -Proto.Serialization.MessagePack
