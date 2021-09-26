@@ -38,9 +38,7 @@ class Build : NukeBuild
     [Solution] readonly Solution Solution;
 
 
-    readonly string NugetApiKey = Environment.GetEnvironmentVariable("NUGET_KEY", EnvironmentVariableTarget.Machine) ??
-                                  Environment.GetEnvironmentVariable("NUGET_KEY", EnvironmentVariableTarget.Process) ??
-                                  Environment.GetEnvironmentVariable("NUGET_KEY", EnvironmentVariableTarget.User);
+    readonly string NugetApiKey = EnvironmentInfo.GetVariable<string>("NUGET_KEY");
 
 
     AbcVersion AbcVersion => AbcVersionFactory.Create(BuildCounter, BuildDate);
