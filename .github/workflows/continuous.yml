@@ -39,9 +39,8 @@ jobs:
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('global.json', 'source/**/*.csproj') }}
       - name: Run './build.cmd Push'
-       env:
+        run: ./build.cmd Push
+        env:
           NUGET_KEY: ${{ secrets.NUGET_KEY }}
-       run: ./build.cmd Push
-
 
 
