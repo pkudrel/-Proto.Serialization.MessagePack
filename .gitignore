@@ -48,3 +48,4 @@ src/.vscode/
 .tmp/
 src/build/.vscode/
 .nuke/temp/b/*
+.nuke/temp/*
