@@ -25,13 +25,6 @@ class Build : NukeBuild
     [Parameter("Build counter from outside environment")]
     readonly int BuildCounter;
 
-
-    [Parameter("NuGet server URL.")]
-    readonly string NugetSource = "https://api.nuget.org/v3/index.json";
-
-
-    string NugetApiKey = Environment.GetEnvironmentVariable("NugetToken", EnvironmentVariableTarget.Machine);
-
     readonly DateTime BuildDate = DateTime.UtcNow;
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -39,8 +32,15 @@ class Build : NukeBuild
 
     [GitRepository] readonly GitRepository GitRepository;
 
+
+    [Parameter("NuGet server URL.")] readonly string NugetSource = "https://api.nuget.org/v3/index.json";
+
     [Solution] readonly Solution Solution;
 
+
+    readonly string NugetApiKey = Environment.GetEnvironmentVariable("NUGET_KEY", EnvironmentVariableTarget.Machine) ??
+                                  Environment.GetEnvironmentVariable("NUGET_KEY", EnvironmentVariableTarget.Process) ??
+                                  Environment.GetEnvironmentVariable("NUGET_KEY", EnvironmentVariableTarget.User);
 
 
     AbcVersion AbcVersion => AbcVersionFactory.Create(BuildCounter, BuildDate);
@@ -55,6 +55,7 @@ class Build : NukeBuild
         {
             var b = AbcVersion;
             Logger.Info($"Host: '{Host}'");
+            Logger.Info($"NugetApiKey: '{NugetApiKey}'");
             Logger.Info($"Version: '{b.SemVersion}'");
             Logger.Info($"Date: '{b.DateTime:s}Z'");
             Logger.Info($"Build target: {Configuration}");
@@ -112,11 +113,9 @@ class Build : NukeBuild
 
     Target Push => _ => _
         .DependsOn(Pack)
-        .OnlyWhenStatic(()=> string.IsNullOrEmpty(NugetApiKey) == false)
+        .OnlyWhenStatic(() => string.IsNullOrEmpty(NugetApiKey) == false)
         .Executes(() =>
         {
-
-
             DotNetNuGetPush(s => s
                 .SetSource(NugetSource)
                 .SetApiKey(NugetApiKey)

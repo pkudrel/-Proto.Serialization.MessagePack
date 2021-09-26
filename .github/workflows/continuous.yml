@@ -41,5 +41,6 @@ jobs:
       - name: Run './build.cmd Push'
         run: ./build.cmd Push
         env:
-          NugetToken: ${{ secrets.NUGET_KEY }}
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+
 
