@@ -38,6 +38,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('global.json', 'source/**/*.csproj') }}
-      - name: Run './build.cmd Compile'
-        run: ./build.cmd Compile
+      - name: Run './build.cmd Push'
+        run: ./build.cmd Push
+        env:
+          NugetToken: ${{ secrets.NUGET_KEY }}
 

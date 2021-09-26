@@ -7,6 +7,7 @@ using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
+using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.IO.FileSystemTasks;
@@ -24,6 +25,13 @@ class Build : NukeBuild
     [Parameter("Build counter from outside environment")]
     readonly int BuildCounter;
 
+
+    [Parameter("NuGet server URL.")]
+    readonly string NugetSource = "https://api.nuget.org/v3/index.json";
+
+
+    string NugetApiKey = Environment.GetEnvironmentVariable("NugetToken");
+
     readonly DateTime BuildDate = DateTime.UtcNow;
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -32,6 +40,8 @@ class Build : NukeBuild
     [GitRepository] readonly GitRepository GitRepository;
 
     [Solution] readonly Solution Solution;
+
+
 
     AbcVersion AbcVersion => AbcVersionFactory.Create(BuildCounter, BuildDate);
 
@@ -87,5 +97,34 @@ class Build : NukeBuild
                 ;
         });
 
-    public static int Main() => Execute<Build>(x => x.Compile);
+    Target Pack => _ => _
+        .DependsOn(Compile)
+        .Executes(() =>
+        {
+            DotNetPack(_ => _
+                .SetProject(Solution)
+                .SetConfiguration(Configuration)
+                .SetOutputDirectory(ArtifactsDirectory)
+                .EnableNoBuild()
+                .AddProperty("Version", AbcVersion.NugetVersion)
+            );
+        });
+
+    Target Push => _ => _
+        .DependsOn(Pack)
+        .OnlyWhenStatic(()=> string.IsNullOrEmpty(NugetApiKey) == false)
+        .Executes(() =>
+        {
+
+
+            DotNetNuGetPush(s => s
+                .SetSource(NugetSource)
+                .SetApiKey(NugetApiKey)
+                .CombineWith(ArtifactsDirectory.GlobFiles("*.nupkg"), (s, v) => s
+                    .SetTargetPath(v)
+                )
+            );
+        });
+
+    public static int Main() => Execute<Build>(x => x.Push);
 }
