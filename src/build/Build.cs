@@ -30,7 +30,7 @@ class Build : NukeBuild
     readonly string NugetSource = "https://api.nuget.org/v3/index.json";
 
 
-    string NugetApiKey = Environment.GetEnvironmentVariable("NugetToken");
+    string NugetApiKey = Environment.GetEnvironmentVariable("NugetToken", EnvironmentVariableTarget.Machine);
 
     readonly DateTime BuildDate = DateTime.UtcNow;
 
