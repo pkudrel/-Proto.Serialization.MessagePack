@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.18.0" />
+    <PackageReference Include="MessagePack" Version="2.3.85" />
+    <PackageReference Include="Proto.Actor" Version="0.24.0" />
+    <PackageReference Include="Proto.Remote" Version="0.24.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\build\_build.csproj" />
+  </ItemGroup>
+</Project>
