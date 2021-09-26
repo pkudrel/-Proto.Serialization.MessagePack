@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using AbcVersionTool;
 using Nuke.Common;
 using Nuke.Common.CI;
@@ -37,15 +38,34 @@ class Build : NukeBuild
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
 
-    Target Clean => _ => _
-        .Before(Restore)
+
+    Target Information => _ => _
+        .Before(Clean)
         .Executes(() =>
         {
-            SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
+            var b = AbcVersion;
+            Logger.Info($"Host: '{Host}'");
+            Logger.Info($"Version: '{b.SemVersion}'");
+            Logger.Info($"Date: '{b.DateTime:s}Z'");
+            Logger.Info($"Build target: {Configuration}");
+            Logger.Info($"FullVersion: '{b.InformationalVersion}'");
+        });
+
+    Target Clean => _ => _
+        .DependsOn(Information)
+        .Executes(() =>
+        {
+            SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(x =>
+            {
+                if (Path.GetFileName(x.Parent) == "build") return;
+                Logger.Info($"Delete: {x}");
+                DeleteDirectory(x);
+            });
             EnsureCleanDirectory(ArtifactsDirectory);
         });
 
     Target Restore => _ => _
+        .DependsOn(Clean)
         .Executes(() =>
         {
             DotNetRestore(s => s
@@ -57,15 +77,13 @@ class Build : NukeBuild
         .Executes(() =>
         {
             DotNetBuild(s => s
-                .SetProjectFile(Solution)
-                .SetConfiguration(Configuration)
-                .SetVersion(AbcVersion.MajorMinor)
-                .SetAssemblyVersion(AbcVersion.AssemblyVersion)
-                .SetFileVersion(AbcVersion.FileVersion)
-                .SetInformationalVersion(AbcVersion.InformationalVersion)
-                .EnableNoRestore())
-                
-                
+                    .SetProjectFile(Solution)
+                    .SetConfiguration(Configuration)
+                    .SetVersion(AbcVersion.MajorMinor)
+                    .SetAssemblyVersion(AbcVersion.AssemblyVersion)
+                    .SetFileVersion(AbcVersion.FileVersion)
+                    .SetInformationalVersion(AbcVersion.InformationalVersion)
+                    .EnableNoRestore())
                 ;
         });
 
