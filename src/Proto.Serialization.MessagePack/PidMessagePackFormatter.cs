@@ -3,7 +3,7 @@ using Google.Protobuf;
 using MessagePack;
 using MessagePack.Formatters;
 
-namespace Proto.Serialization.MessagePack.Systems
+namespace Proto.Serialization.MessagePack
 {
     public sealed class PidMessagePackFormatter : IMessagePackFormatter<PID>
     {

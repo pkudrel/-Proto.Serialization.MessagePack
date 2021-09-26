@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using MessagePack;
 using MessagePack.Formatters;
-using Proto.Serialization.MessagePack.Systems;
 
 namespace Proto.Serialization.MessagePack
 {

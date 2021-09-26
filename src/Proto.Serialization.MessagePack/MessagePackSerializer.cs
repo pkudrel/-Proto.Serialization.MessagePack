@@ -7,15 +7,15 @@ using Proto.Remote;
 
 namespace Proto.Serialization.MessagePack
 {
-    public class MsgPackSerializer : ISerializer
+    public class MessagePackSerializer : ISerializer
     {
-        private readonly Dictionary<string, Func<byte[], object>> _deserializers
-            = new Dictionary<string, Func<byte[], object>>();
+        private readonly Dictionary<string, Func<byte[], object>> _deserializers =
+            new Dictionary<string, Func<byte[], object>>();
 
         private readonly MessagePackSerializerOptions _options;
 
 
-        public MsgPackSerializer()
+        public MessagePackSerializer()
         {
             var resolver = CompositeResolver.Create(
                 // resolver custom types first
@@ -30,14 +30,12 @@ namespace Proto.Serialization.MessagePack
 
         public ByteString Serialize(object obj)
         {
-            return ByteString.CopyFrom(MessagePackSerializer.Serialize(obj, _options));
+            return ByteString.CopyFrom(global::MessagePack.MessagePackSerializer.Serialize(obj, _options));
         }
 
         public object Deserialize(ByteString bytes, string typeName)
         {
-            if (_deserializers.TryGetValue(typeName, out var deserialize)) return deserialize(bytes.ToByteArray());
-
-            return null;
+            return _deserializers.TryGetValue(typeName, out var deserialize) ? deserialize(bytes.ToByteArray()) : null;
         }
 
         public string GetTypeName(object message)
@@ -55,7 +53,8 @@ namespace Proto.Serialization.MessagePack
 
         public void RegisterType<T>() where T : class
         {
-            _deserializers.Add(typeof(T).ToString(), x => MessagePackSerializer.Deserialize<T>(x, _options));
+            _deserializers.Add(typeof(T).ToString(),
+                x => global::MessagePack.MessagePackSerializer.Deserialize<T>(x, _options));
         }
     }
 }

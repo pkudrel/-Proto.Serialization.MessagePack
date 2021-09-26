@@ -1,17 +1,14 @@
 using System;
-using System.Linq;
+using AbcVersionTool;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
-using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
-using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
-using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [CheckBuildProjectConfigurations]
@@ -19,18 +16,23 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 class Build : NukeBuild
 {
     /// Support plugins are available for:
-    ///   - JetBrains ReSharper        https://nuke.build/resharper
-    ///   - JetBrains Rider            https://nuke.build/rider
-    ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
-    ///   - Microsoft VSCode           https://nuke.build/vscode
+    /// - JetBrains ReSharper        https://nuke.build/resharper
+    /// - JetBrains Rider            https://nuke.build/rider
+    /// - Microsoft VisualStudio     https://nuke.build/visualstudio
+    /// - Microsoft VSCode           https://nuke.build/vscode
+    [Parameter("Build counter from outside environment")]
+    readonly int BuildCounter;
 
-    public static int Main () => Execute<Build>(x => x.Compile);
+    readonly DateTime BuildDate = DateTime.UtcNow;
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
-    [Solution] readonly Solution Solution;
     [GitRepository] readonly GitRepository GitRepository;
+
+    [Solution] readonly Solution Solution;
+
+    AbcVersion AbcVersion => AbcVersionFactory.Create(BuildCounter, BuildDate);
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
@@ -57,7 +59,15 @@ class Build : NukeBuild
             DotNetBuild(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .EnableNoRestore());
+                .SetVersion(AbcVersion.MajorMinor)
+                .SetAssemblyVersion(AbcVersion.AssemblyVersion)
+                .SetFileVersion(AbcVersion.FileVersion)
+                .SetInformationalVersion(AbcVersion.InformationalVersion)
+                .EnableNoRestore())
+                
+                
+                ;
         });
 
+    public static int Main() => Execute<Build>(x => x.Compile);
 }
