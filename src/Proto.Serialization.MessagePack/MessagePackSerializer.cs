@@ -47,7 +47,7 @@ namespace Proto.Serialization.MessagePack
         {
             var key = obj.GetType().ToString();
             var can = _deserializers.ContainsKey(key);
-            Console.WriteLine($"Can: {key} => {can} ");
+            // Console.WriteLine($"Can: {key} => {can} ");
             return can;
         }
 
@@ -55,6 +55,12 @@ namespace Proto.Serialization.MessagePack
         {
             _deserializers.Add(typeof(T).ToString(),
                 x => global::MessagePack.MessagePackSerializer.Deserialize<T>(x, _options));
+        }
+
+        public void RegisterType(Type type)
+        {
+            _deserializers.Add(type.ToString(),
+                x => global::MessagePack.MessagePackSerializer.Deserialize(type, x, _options));
         }
     }
 }
